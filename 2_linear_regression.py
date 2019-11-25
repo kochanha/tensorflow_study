@@ -8,7 +8,7 @@ W = tf.Variable(tf.random_normal([1]), name='weight')
 b = tf.Variable(tf.random_normal([1]), name='bias')
 
 # Our hypothesis Wx+b
-hypothesis = x_train * W + b
+hypothesis = W * x_train + b
 
 # cost/loss function
 cost = tf.reduce_mean(tf.square(hypothesis - y_train))
@@ -23,7 +23,7 @@ sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 # Fit the line
-for step in range(2001):
+for step in range(5000):
     sess.run(train)
     if step % 5 == 0:
         print(step, sess.run(cost), sess.run(W), sess.run(b))
