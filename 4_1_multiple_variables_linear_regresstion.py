@@ -1,43 +1,39 @@
 # Lab 4 Multi-variable linear regression
 import tensorflow as tf
+tf.enable_eager_execution()
+import numpy as np
 tf.set_random_seed(777)  # for reproducibility
 
-x_data = [[73., 80., 75.],
-          [93., 88., 93.],
-          [89., 91., 90.],
-          [96., 98., 100.],
-          [73., 66., 70.]]
-y_data = [[152.], 
-          [185.],
-          [180.],
-          [196.],
-          [142.]]
+data = np.array([
+          [73., 80., 75., 152.],
+          [93., 88., 93., 185.],
+          [89., 91., 90., 180.],
+          [96., 98., 100., 196.],
+          [73., 66., 70., 142.]
+          ], dtype=np.float32)
 
 
 # placeholders for a tensor that will be always fed.
-X = tf.placeholder(tf.float32, shape=[None, 3])
-Y = tf.placeholder(tf.float32, shape=[None, 1])
+X=data[:,:-1]
+Y=data[:,[-1]]
 
-W = tf.Variable(tf.random_normal([3, 1]), name='weight')
-b = tf.Variable(tf.random_normal([1]), name='bias')
+W = tf.Variable(tf.random_normal([3, 1]))
+b = tf.Variable(tf.random_normal([1]))
 
-# Hypothesis
-hypothesis = tf.matmul(X, W) + b
+learning_rate = 0.000001
 
-# Simplified cost/loss function
-cost = tf.reduce_mean(tf.square(hypothesis - Y))
+def predict(X):
+    return tf.matmul(X,W)+b
 
-# Minimize
-optimizer = tf.train.GradientDescentOptimizer(learning_rate=1e-5)
-train = optimizer.minimize(cost)
+n_epochs = 2000
+for i in range(n_epochs+1):
+    with tf.GradientTape() as tape:
+        cost = tf.reduce_mean((tf.square(predict(X)-Y)))
 
-# Launch the graph in a session.
-sess = tf.Session()
-# Initializes global variables in the graph.
-sess.run(tf.global_variables_initializer())
+    W_grad, b_grad = tape.gradient(cost, [W,b])
 
-for step in range(2001):
-    cost_val, hy_val, _ = sess.run(
-        [cost, hypothesis, train], feed_dict={X: x_data, Y: y_data})
-    if step % 10 == 0:
-        print(step, "Cost: ", cost_val, "\nPrediction:\n", hy_val)
+    W.assign_sub(learning_rate * W_grad)
+    b.assign_sub(learning_rate * b_grad)
+
+    if i%100==0:
+        print("{:5} | {:10.4f}".format(i, cost.numpy()))
