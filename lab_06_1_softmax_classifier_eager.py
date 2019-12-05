@@ -20,6 +20,7 @@ tfe = tf.contrib.eager
 
 x_data = [[1, 2, 1, 1],
           [2, 1, 3, 2],
+
           [3, 1, 3, 4],
           [4, 1, 5, 5],
           [1, 7, 5, 5],
@@ -70,9 +71,9 @@ print(hypothesis(sample_db))
 
 def cost_fn(X, Y):
     logits = hypothesis(X)
-    cost = -tf.reduce_sum(Y * tf.log(logits), axis=1)
+    cost = -tf.reduce_sum(Y * tf.math.log(logits), axis=1)
     cost_mean = tf.reduce_mean(cost)
-    
+
     return cost_mean
 
 print(cost_fn(x_data, y_data))
@@ -93,15 +94,16 @@ def grad_fn(X, Y):
 
 print(grad_fn(x_data, y_data))
 
+
+
 def fit(X, Y, epochs=2000, verbose=100):
     optimizer =  tf.train.GradientDescentOptimizer(learning_rate=0.1)
-
     for i in range(epochs):
         grads = grad_fn(X, Y)
         optimizer.apply_gradients(zip(grads, variables))
         if (i==0) | ((i+1)%verbose==0):
             print('Loss at epoch %d: %f' %(i+1, cost_fn(X, Y).numpy()))
-            
+
 fit(x_data, y_data)
 
 """# Prediction Check"""
@@ -126,23 +128,23 @@ class softmax_classifer(tf.keras.Model):
         super(softmax_classifer, self).__init__()
         self.W = tfe.Variable(tf.random_normal([4, nb_classes]), name='weight')
         self.b = tfe.Variable(tf.random_normal([nb_classes]), name='bias')
-        
+
     def softmax_regression(self, X):
         return tf.nn.softmax(tf.matmul(X, self.W) + self.b)
-    
+
     def cost_fn(self, X, Y):
         logits = self.softmax_regression(X)
-        cost = tf.reduce_mean(-tf.reduce_sum(Y * tf.log(logits), axis=1))
-        
+        cost = tf.reduce_mean(-tf.reduce_sum(Y * tf.math.log(logits), axis=1))
+
         return cost
-    
+
     def grad_fn(self, X, Y):
         with tf.GradientTape() as tape:
             cost = self.cost_fn(x_data, y_data)
             grads = tape.gradient(cost, self.variables)
-            
+
             return grads
-    
+
 def fit(self, X, Y, epochs=2000, verbose=500):
     optimizer =  tf.train.GradientDescentOptimizer(learning_rate=0.1)
 
@@ -151,6 +153,6 @@ def fit(self, X, Y, epochs=2000, verbose=500):
         optimizer.apply_gradients(zip(grads, self.variables))
         if (i==0) | ((i+1)%verbose==0):
             print('Loss at epoch %d: %f' %(i+1, self.loss_fn(X, Y).numpy()))
-            
+
 model = softmax_classifer(nb_classes)
 model.fit(x_data, y_data)
